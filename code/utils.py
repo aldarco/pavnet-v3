@@ -27,8 +27,6 @@ def get_dt_fname_v3(fname, loc="PLO"):
     dt_ = dtime.strptime(fname, "%Y_%m_%d_%H_%M_%S")
     return dt_
 
-
-
 def basebandiq(x, tt, fc, bw=100, fs=50e3):
     '''
     covnerts a signal to baseband, DC
@@ -95,13 +93,26 @@ def read_binary_IQ(f):
     PPS = f.read(30)
     return np.asarray([I,Q])
 
+def read_datafilev2(fullpath):
+    # returns xi, xq and ct
+    # ct: datetime creation time
+    ct = grab_nominal_datetime_v2file(fullpath)
+    content = get_content(fullpath)
+    st = pd.read_csv(strio(content.decode()), comment="#", header=None, sep=sep, engine=engine).values
+    xi, xq = st[:,0], st[:,1]
+
+    return xi, xq, ct
+    
+
 
 def read_datafile(fullpath, truncateN=None):
     """
+    fullpath: path to .bin v3-file
     read the new PAVNET v3 datafile (.bin)
     Returns: I (in phase), Q (quadrature), N (number of datapoints)
     """
     try:
+        ct = grab_nominal_datetime(fullpath)
         with open(fullpath, 'rb') as fid:
             # Ir al byte 102 y leer 30 bytes
             fid.seek(102)
@@ -129,10 +140,10 @@ def read_datafile(fullpath, truncateN=None):
             I = data[:, 0]
             Q = data[:, 1]
             
-            return I, Q, N
+            return I, Q, N, ct
     except Exception as e:
         print(f"Error al leer {fullpath}: {e}")
-        return None, None, 0
+        return None, None, None, None
 
 def grab_nominal_datetime(fname):
     # grab datetime from v3 filename
@@ -141,6 +152,13 @@ def grab_nominal_datetime(fname):
     _dtv = list(map(int,fname.split("/")[-1].split("h")[0].split("_")[1:]))
     return dtime(*_dtv)
 
+def grab_nominal_datetime_v2file(fname):
+    # grab datetime from v2 filename
+    # fname  : <LOC>_<year>_<month>_<day>_<hour>_<minutes>_<seconds>h_<Number>.bin
+    # fname ex: ANTAR_RAW_175176_09_02_2026_0_0_0__175176.txt
+    # returns: datetime
+    _dtv = list(map(int,fname.split("/")[-1].split("_")[3:9]))
+    return dtime(_dtv[2], _dtv[1], _dtv[0], *_dtv[3:])
 
 def IQ_clipping_filter(iq, nstd=None):
     #clip_min, clip_max = np, 1.0

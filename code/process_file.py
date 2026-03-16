@@ -1,6 +1,7 @@
 # Processing code for the V3 
 # this code is called by the receiver code
 # after the extraction of the amplitudes these vales are sent to the DB
+
 import time
 time0 = time.perf_counter() # HOW MUCH TIME DOES THIS WHOLE CODE TAKES?
 import sys
@@ -10,12 +11,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import datetime
 sys.path.append("/home/aldo//dataprocessing2/dataprocessingv2/code/")
-
 import utils
 import json
 import fft_pavnet
-
-
+import baseband_processor as baseband
 
 with open(f'/home/aldo//dataprocessing2/dataprocessingv2/code/config_params.json', 'r') as f:
     config = json.load(f)
@@ -59,27 +58,46 @@ def amp_at_fx_localmax(X, X_f, tx_index):
         amps[name] = max(wX)
     return amps
 
-
-
-def process(FILEPATH):
-    #amp_data = {name:0 for name in Txs.keys()}#pd.DataFrame()
-    timeindex = []
-    texec = []
-        
-    xi, xq, lenx = utils.read_datafile(FILEPATH)
-    #creationtime = os.path.getctime(FILEPATH) # creationtime based on system 
-    #creationtime = os.path.getmtime(FILEPATH) # modificationtime based on system
-    # ct = datetime.datetime.fromtimestamp(creationtime) 
-    ct = utils.grab_nominal_datetime(FILEPATH)
-
+def _process_iq(xi, xq):
     xt = xi + 1j*xq
     # print(lenx)
     X = fft_pavnet.fft_overlap(xt, fft_npts=fft_npts, sampling_freq=Fs)
     amps = amp_at_fx_localmax(X, farr, txs_index)
-   
+    return amps
+
+
+
+def process(FILEPATH):
+    # process v3 / BIN FILES
+    xi, xq, lenx, ct = utils.read_datafile(FILEPATH) 
+
+    #creationtime = os.path.getctime(FILEPATH) # creationtime based on system 
+    #creationtime = os.path.getmtime(FILEPATH) # modificationtime based on system
+    # ct = datetime.datetime.fromtimestamp(creationtime) 
+    amps = _process_iq(xi, xq)    
     return ct, amps
 
+def process_channels(FILEPATH):
+    # v3 datafiles, using RF oscillator to baseband
+    xi, xq, lenx, ct = utils.read_datafile(FILEPATH) 
 
+    amps = {}
+    for name in Txs.keys():
+        ftx = Txs[name]
+        _amp = bb.ftx_to_baseband(xi,xq, lenx, Fs, ftx)
+        amps[name] = _amp
+
+    return ct, amps
+
+def processv2(FILEPATH):
+    #amp_data = {name:0 for name in Txs.keys()}#pd.DataFrame()
+    
+    xi, xq, lenx = utils.read_datafilev2(FILEPATH) 
+    #creationtime = os.path.getctime(FILEPATH) # creationtime based on system 
+    #creationtime = os.path.getmtime(FILEPATH) # modificationtime based on system
+    # ct = datetime.datetime.fromtimestamp(creationtime) 
+    amps = _process_iq(xi, xq) 
+    return ct, amps
 
 if __name__ == "__main__":
     try: 

@@ -90,8 +90,6 @@ class FileHandler(FileSystemEventHandler):
             self.process_and_move(event.src_path)
 
 
-
-
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python watcher.py <directory_to_watch> <KEY>")
