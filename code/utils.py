@@ -8,11 +8,14 @@ import tarfile
 import os
 import sys
 sys.path.append("/home/aldo//notebooks/code")
-import fft_pavnet
+from . import fft_pavnet
 import scipy.signal as signal
 from datetime import datetime as dtime
 import time
 import re
+import pandas as pd 
+from io import StringIO as strio
+
 
 def get_content(ftar):
     # obtener archivo de datos (TXT) contenido en el comprimido tar.gz
@@ -98,7 +101,7 @@ def read_datafilev2(fullpath):
     # ct: datetime creation time
     ct = grab_nominal_datetime_v2file(fullpath)
     content = get_content(fullpath)
-    st = pd.read_csv(strio(content.decode()), comment="#", header=None, sep=sep, engine=engine).values
+    st = pd.read_csv(strio(content.decode()), comment="#", header=None).values
     xi, xq = st[:,0], st[:,1]
 
     return xi, xq, ct

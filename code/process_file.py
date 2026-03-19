@@ -10,18 +10,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime
-sys.path.append("/home/aldo//dataprocessing2/dataprocessingv2/code/")
-import utils
+from . import utils
 import json
-import fft_pavnet
-import baseband_processor as baseband
+from . import fft_pavnet
+from .import baseband_processor as baseband
 
-with open(f'/home/aldo//dataprocessing2/dataprocessingv2/code/config_params.json', 'r') as f:
+with open(f'{os.path.dirname(__file__)}/config_params.json', 'r') as f:
     config = json.load(f)
     #print(json.dumps(config, indent=4))
 
 dspconfig = config["DSP"]
-fft_npts = dspconfig["fft_npts"]
+npts = 8192 #dspconfig["fft_npts"]
 Fs = dspconfig["sampling_frequency"]
 deltaf = dspconfig["delta_f"]
 Txs = dspconfig["vlf_transmitters"]
@@ -31,6 +30,9 @@ SLEEPT = 2 #seconds
 farr = np.arange(fft_npts)*Fs/fft_npts
 rxname = "SI_" # config["vlf_transmitters"]["PLO"]
 txs_index = {}
+
+# IF demod
+bb = baseband.baseband(Fs, deltaf, npts)
 
 for txname in Txs.keys():
     f_ = Txs[txname]
@@ -89,10 +91,23 @@ def process_channels(FILEPATH):
 
     return ct, amps
 
+def process_channels_v2(FILEPATH):
+    # v3 datafiles, using RF oscillator to baseband
+    # Fs fixed to 50e3
+    xi, xq, ct = utils.read_datafilev2(FILEPATH) 
+
+    amps = {}
+    for name in Txs.keys():
+        ftx = Txs[name]
+        _amp = bb.ftx_to_baseband(xi,xq, f_target=ftx)
+        amps[name] = _amp
+
+    return ct, amps
+
 def processv2(FILEPATH):
     #amp_data = {name:0 for name in Txs.keys()}#pd.DataFrame()
     
-    xi, xq, lenx = utils.read_datafilev2(FILEPATH) 
+    xi, xq, ct = utils.read_datafilev2(FILEPATH) 
     #creationtime = os.path.getctime(FILEPATH) # creationtime based on system 
     #creationtime = os.path.getmtime(FILEPATH) # modificationtime based on system
     # ct = datetime.datetime.fromtimestamp(creationtime) 
