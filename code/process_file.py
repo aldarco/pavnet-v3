@@ -20,14 +20,14 @@ with open(f'{os.path.dirname(__file__)}/config_params.json', 'r') as f:
     #print(json.dumps(config, indent=4))
 
 dspconfig = config["DSP"]
-npts = 8192 #dspconfig["fft_npts"]
+npts = 8192*8 #dspconfig["fft_npts"]
 Fs = dspconfig["sampling_frequency"]
 deltaf = dspconfig["delta_f"]
 Txs = dspconfig["vlf_transmitters"]
 backup_path = None #"/data/pavnet/datafiles/"
 ramdisk = "/run/user/1000/temprpdata/"
 SLEEPT = 2 #seconds
-farr = np.arange(fft_npts)*Fs/fft_npts
+farr = np.arange(npts)*Fs / npts
 rxname = "SI_" # config["vlf_transmitters"]["PLO"]
 txs_index = {}
 
@@ -86,7 +86,7 @@ def process_channels(FILEPATH):
     amps = {}
     for name in Txs.keys():
         ftx = Txs[name]
-        _amp = bb.ftx_to_baseband(xi,xq, lenx, Fs, ftx)
+        _amp = bb.ftx_to_baseband(xi,xq, ftx)
         amps[name] = _amp
 
     return ct, amps
