@@ -21,6 +21,7 @@ with open(f'{os.path.dirname(__file__)}/config_params.json', 'r') as f:
 
 dspconfig = config["DSP"]
 npts = 8192*8 #dspconfig["fft_npts"]
+nptsv2 = dspconfig["npts-v2"]
 Fs = dspconfig["sampling_frequency"]
 deltaf = dspconfig["delta_f"]
 Txs = dspconfig["vlf_transmitters"]
@@ -32,7 +33,7 @@ rxname = "SI_" # config["vlf_transmitters"]["PLO"]
 txs_index = {}
 
 # IF demod
-bb = baseband.baseband(Fs, deltaf, npts)
+bb = baseband.baseband(Fs, deltaf, npts, targets=Txs)
 
 for txname in Txs.keys():
     f_ = Txs[txname]
@@ -95,7 +96,7 @@ def process_channels_v2(FILEPATH):
     # v3 datafiles, using RF oscillator to baseband
     # Fs fixed to 50e3
     xi, xq, ct = utils.read_datafilev2(FILEPATH) 
-
+    #bb.npts = npts
     amps = {}
     for name in Txs.keys():
         ftx = Txs[name]

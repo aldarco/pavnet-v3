@@ -3,6 +3,7 @@
 "DSP":{
     "sampling_frequency":100e3,
     "fft_npts":8192,
+    "npts-v2":8192,
     "delta_f":300,
     "method": "overlap",
     "overlap_percent" : 50,

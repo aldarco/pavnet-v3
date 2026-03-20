@@ -4,7 +4,8 @@ import sys
 import time
 import pandas as pd 
 from pathlib import Path
-from code.process_file import process_channels_v2, process_channels
+import code.process_file as processfile
+# from code.process_file import process_channels_v2, process_channels
 
 if __name__ == "__main__":
     source_dir = sys.argv[1]
@@ -16,15 +17,18 @@ if __name__ == "__main__":
     count = 0
     downsample_factor = 10 # only each downsample files
     # define the processing function based on the version
-    _process_channels = process_channels_v2 if "v2" in sys.argv else process_channels
+    # _process_channels = processfile.process_channels_v2 if "v2" in sys.argv else processfile.process_channels
     print(f"Input: {source_dir}")
     print(f"Output: {destination_dir}")
     if "v2" in sys.argv:
         print(" -> V2")
         fmt = "tar.gz"
+        processfile.bb.set_v2params()
+        _process_channels = processfile.process_channels_v2
     else:
         print(" -> V3")
         fmt = ".bin"
+        _process_channels = processfile.process_channels
 
     for root, dirs, files in os.walk(source_dir):
         t0 = time.perf_counter()
@@ -46,7 +50,7 @@ if __name__ == "__main__":
     #print()
     df = df.set_index('DateTime')
     df = df.sort_index()
-    output_file = f"{destination_dir}/{key}_amplitude_{df.index[0].date()}-to-{df.index[0].date()}.csv"
+    output_file = f"{destination_dir}/{key}_amplitude_{df.index[0].date()}-to-{df.index[-1].date()}.csv"
     df.to_csv(output_file)
     print(f"Data stored in {output_file}")
     print("All done.")
