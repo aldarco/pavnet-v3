@@ -75,7 +75,7 @@ class baseband:
         amp_val = np.mean(np.abs(z_filtered))    
         return amp_val
         
-    def multi_ftx_to_bsaeband(self, xi, xq):
+    def multi_ftx_to_baseband(self, xi, xq):
         '''
         baseband for multiple targets.
         xi, xq : IQ components
@@ -84,8 +84,8 @@ class baseband:
         returns: dict of amplitudes
         '''
         amps = {}
-        for name in self.targets:
-            ftx = targets["name"]
+        for name in self.targets.keys():
+            ftx = self.targets[name]
             a = self.ftx_to_baseband(xi, xq, ftx)
             amps[name] = a
         return amps

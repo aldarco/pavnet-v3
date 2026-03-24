@@ -98,11 +98,12 @@ def process_channels_v2(FILEPATH):
     xi, xq, ct = utils.read_datafilev2(FILEPATH) 
     #bb.npts = npts
     amps = {}
-    for name in Txs.keys():
-        ftx = Txs[name]
-        _amp = bb.ftx_to_baseband(xi,xq, f_target=ftx)
-        amps[name] = _amp
-
+    # for name in Txs.keys():
+    #     ftx = Txs[name]
+    #     _amp = bb.ftx_to_baseband(xi,xq, f_target=ftx)
+    #     amps[name] = _amp
+    amps = bb.multi_ftx_to_baseband(xi,xq)
+    
     return ct, amps
 
 def processv2(FILEPATH):
