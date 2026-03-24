@@ -1,0 +1,17 @@
+class MiClase:
+    def __init__(self, n):
+        self._n = n
+        self._t = np.arange(n)
+
+    @property
+    def n(self):
+        return self._n
+
+    @n.setter
+    def n(self, nuevo_valor):
+        self._n = nuevo_valor
+        self._t = np.arange(nuevo_valor)  # Actualiza t automáticamente
+
+    @property
+    def t(self):
+        return self._t
