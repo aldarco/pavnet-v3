@@ -10,17 +10,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime
-from . import utils
 import json
-from . import fft_pavnet
-from .import baseband_processor as baseband
+try:
+    from . import utils
+    from . import fft_pavnet
+    from .import baseband_processor as baseband
+except ImportError as e:
+    import utils
+    import fft_pavnet
+    import baseband_processor as baseband
 
 with open(f'{os.path.dirname(__file__)}/config_params.json', 'r') as f:
     config = json.load(f)
     #print(json.dumps(config, indent=4))
 
 dspconfig = config["DSP"]
-npts = 8192*8 #dspconfig["fft_npts"]
+npts = dspconfig["fft_npts"]
 nptsv2 = dspconfig["npts-v2"]
 Fs = dspconfig["sampling_frequency"]
 deltaf = dspconfig["delta_f"]
@@ -119,12 +124,14 @@ def processv2(FILEPATH):
 if __name__ == "__main__":
     try: 
         FILEPATH = sys.argv[1]
-        ct, amp_data = process(FILEPATH)
+        #ct, amp_data = process(FILEPATH)
+        ct, amp_data = process_channels(FILEPATH)
         time1 = time.perf_counter()
-        print(ct, end=" :: ")
+        print(ct)#, end=" :: ")
+        #print(amp_data)
         for k in amp_data.keys():
-            # print(k)
-            print(f"{k}= {amp_data[k][0]:.4f}", end="\t")
+            #print(k)
+            print(f"{k}= {amp_data[k]:.4f}", end="\t")
         
         print(f"_dt={time1-time0:.4f}")
         

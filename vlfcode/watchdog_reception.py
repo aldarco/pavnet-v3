@@ -14,10 +14,10 @@ import datetime
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-sys.path.append("/home/aldo/dataprocessing2/dataprocessingv2/code/")
-import utils
-import process_file
-from sendtodb import DBClient
+#sys.path.append("/home/aldo/dataprocessing2/dataprocessingv2/code/")
+from . import utils
+from . import process_file
+from .sendtodb import DBClient
 
 class FileHandler(FileSystemEventHandler):
     '''
@@ -50,7 +50,8 @@ class FileHandler(FileSystemEventHandler):
         time0 = time.perf_counter()
 
         try:
-            ct, amp_data = process_file.process(filepath) # v3 format: .bin
+            #ct, amp_data = process_file.process(filepath) # v3 format: .bin
+            ct, amp_data = process_file.process_channels(filepath) # improved version
             time1 = time.perf_counter()
             # print(ct)
             # print(amp_data)
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 
     # Before the observer starts, lets grab the existing files in the arrival directory
     files = [os.path.join(path_to_watch, f) for f in os.listdir(path_to_watch) if (key in f and f.endswith(".bin"))]
-    # start the observer
+    # start the observer, it runs as a thread (kinda paralel with the pending processing)
     observer.start()
     # process the existing, so we can avoid the race condition
     for f in files:

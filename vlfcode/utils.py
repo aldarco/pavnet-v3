@@ -7,8 +7,12 @@ import numpy as np
 import tarfile
 import os
 import sys
-sys.path.append("/home/aldo//notebooks/code")
-from . import fft_pavnet
+#sys.path.append("/home/aldo//notebooks/code")
+try:
+    from . import fft_pavnet
+except (ModuleNotFoundError, ImportError) as e:
+    import fft_pavnet
+
 import scipy.signal as signal
 from datetime import datetime as dtime
 import time
