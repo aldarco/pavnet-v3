@@ -88,7 +88,7 @@ def process(FILEPATH):
 def process_channels(FILEPATH):
     # v3 datafiles, using RF oscillator to baseband
     xi, xq, lenx, ct = utils.read_datafile(FILEPATH) 
-
+    if xi is None: return None, None
     amps = {}
     for name in Txs.keys():
         ftx = Txs[name]

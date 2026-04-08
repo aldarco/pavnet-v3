@@ -13,7 +13,7 @@ import json
 import datetime
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-
+from collections import deque
 #sys.path.append("/home/aldo/dataprocessing2/dataprocessingv2/code/")
 from . import utils
 from . import process_file
@@ -35,17 +35,20 @@ class FileHandler(FileSystemEventHandler):
 
         os.makedirs(self.failed_dir, exist_ok=True)
         os.makedirs(self.processed_dir, exist_ok=True)
+        self.latest_processed = deque([],5)
 
     def process_and_move(self, filepath):
         '''
         Process the datafile arrived using the processing parameters from config file.
-        returns: creation time (ct) and dict of amplitudes {"Tx1":amp1, ...}
+        returns: creation time (ct) and dict of amplitudes {"Tx1":amp1, ...} 
+                 or None, None in case of errors
         '''
         ct = None
         amp_data = {}
-        if not filepath.endswith('.bin') and not filepath.startswith(self.key):
+        if  not filepath.endswith('.bin') and not filepath.startswith(self.key):
             return ct, amp_data
-
+        if filepath in self.latest_processed:
+            return ct, amp_data
         print(f"Processing {os.path.basename(filepath)}")
         time0 = time.perf_counter()
 
@@ -55,24 +58,27 @@ class FileHandler(FileSystemEventHandler):
             time1 = time.perf_counter()
             # print(ct)
             # print(amp_data)
-            for k, v in amp_data.items():
-                print(f"{k}={v:.4f}", end="\t")
-            print(f"_dt={time1-time0:.4f}")
-            processing_ok = True
+
         except Exception as e:
             print(f"Error processing {filepath}: {e}")
             processing_ok = False
-
-        # Move file based on outcome
-        try:
-            if processing_ok:
-                dest = self.processed_dir
-            else:
-                dest = self.failed_dir
-            shutil.move(filepath, os.path.join(dest, os.path.basename(filepath)))
-        except Exception as e:
-            print(f"Failed to move {filepath}: {e} - Destination: {dest}")
         
+        if amp_data==None or amp_data=={}:
+            processing_ok = False
+            # as observed, can occur that file has been already moved... why ? TODO
+            if os.path.isfile(filepath):
+                shutil.move(filepath, os.path.join(self.failed_dir, os.path.basename(filepath)))
+            return None, None
+        # so far this should be ok... but there's always a worst case.. idk by the time
+        # let's suppose it will run ok
+        for k, v in amp_data.items():
+            print(f"{k}={v:.4f}", end="\t")
+        print(f"_dt={time1-time0:.4f}")
+        processing_ok = True
+  
+        shutil.move(filepath, os.path.join(self.processed_dir, os.path.basename(filepath)))
+        
+        self.latest_processed.append(filepath)
         # send to DB
         self.db_client.send_to_db(ct, amp_data)
 

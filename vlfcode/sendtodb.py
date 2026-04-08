@@ -102,6 +102,7 @@ class DBClient(InfluxDBClient):
             # }
 
         }
+        print(record)
         # t0 = time.perf_counter()
         conn = sqlite3.connect(self.localdb_path)
         c_ = conn.cursor()
