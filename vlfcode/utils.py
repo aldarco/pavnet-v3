@@ -116,7 +116,7 @@ def read_datafile(fullpath, truncateN=None):
     """
     fullpath: path to .bin v3-file
     read the new PAVNET v3 datafile (.bin)
-    Returns: I (in phase), Q (quadrature), N (number of datapoints)
+    Returns: I (in phase), Q (quadrature), N (number of datapoints), dt (datetime)
     """
     try:
         ct = grab_nominal_datetime(fullpath)
